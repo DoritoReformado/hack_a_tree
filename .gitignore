@@ -1,0 +1,7 @@
+LLM
+python/.git
+python/.gitignore
+.env
+python/django/hack_a_treecapitator/media/
+notebooks/2025-11-18 indices/
+notebooks/deforestation/
