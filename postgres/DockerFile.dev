@@ -1,0 +1,16 @@
+# Usamos la imagen oficial de PostgreSQL 16
+FROM postgres:16
+
+# Instalamos PostGIS compatible con PostgreSQL 16
+RUN apt-get update && apt-get install -y postgis postgresql-16-postgis-3
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+
+# Permisos para la base de datos al iniciar
+COPY ./init_postgis.sh /docker-entrypoint-initdb.d/init_postgis.sh
+RUN chmod +x /docker-entrypoint-initdb.d/init_postgis.sh
+
+
+# Definimos las variables de entorno para la configuración de la base de datos
+ENV POSTGRES_USER=your_postgres_user
+ENV POSTGRES_PASSWORD=your_postgres_password
+ENV POSTGRES_DB=your_database_name

@@ -1,0 +1,53 @@
+  version: '3.9'
+  services:
+    python-app:
+      build:
+        context: ./python/
+        dockerfile: DockerFile.dev
+      ports:
+        - "8001:8000"
+      volumes:
+        - ./python/django/:/usr/src/app
+      tty: true
+      stdin_open: true
+      environment:
+        - POSTGRES_USER=${POSTGRES_USER}
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        - POSTGRES_DB=${POSTGRES_DB}
+        - POSTGRES_HOST=postgres
+        - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+        - EMAIL_OFICIAL=${EMAIL_OFICIAL}
+        - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+        - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+        - OPENAI_API_KEY=${OPENAI_API_KEY}
+      depends_on:
+        - postgres
+        - dragonfly
+      working_dir: /usr/src/app/hack_a_treecapitator
+      command: >
+        sh -c "gunicorn sasaki.wsgi:application --bind 0.0.0.0:8000 --workers 2 &
+        celery -A config worker --loglevel=info &
+        celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
+      # command: tail -f /dev/null
+    postgres:
+      build:
+        context: ./postgres/
+        dockerfile: DockerFile.dev
+      ports:
+          - "5434:5432"
+      environment:
+        - POSTGRES_USER=${POSTGRES_USER}
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        - POSTGRES_DB=${POSTGRES_DB}
+      volumes:
+        - postgres_data:/var/lib/postgresql/data  # Persistencia de datos
+    dragonfly:
+      image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+      ulimits:
+        memlock: -1
+      ports:
+        - "6380:6379"
+
+  volumes:
+    postgres_data:
+    mongo-data:
